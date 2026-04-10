@@ -1,0 +1,39 @@
+name: Refresh Toffee Playlist
+
+on:
+  schedule:
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Decode and run script
+        env:
+          MAIN_PY_B64: ${{ secrets.MAIN_PY }}
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        run: |
+          echo "$MAIN_PY_B64" | base64 -d > main.py
+          pip install requests
+          python main.py
+
+      - name: Commit and push changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Auto-refresh Toffee playlist"
+          commit_user_name: "GitHub Action"
+          commit_user_email: "action@github.com"
+          file_pattern: "toffee.m3u"
